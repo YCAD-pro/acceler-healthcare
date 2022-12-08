@@ -1,97 +1,90 @@
-import {} from "../entities/Site";
 import { conn } from "../utils/bddUtils";
+import { getByIdSite } from "./SiteModel";
 
 export async function getAll() {
-  let sites = await conn.query("select * from site");
-  for (let i = 0; i < sites.length; i++) {
-    let site = sites[i];
-    const address = await conn.query(
-      "SELECT street, zip_code, city, country FROM address_site where site_id = ?",
-      [site.site_id]
-    );
-    site.address = address[0];
-  }
-  return sites;
+  return await conn.query("SELECT * FROM clinical_trial");
 }
 
-export async function getAllByJoin() {
-  let sites = await conn.query(
-    `select * from site s join address_site ads on s.site_id = ads.site_id`
+export async function getById(idTrial) {
+  let askedTrial = await conn.query(
+    "SELECT * FROM clinical_trial ct WHERE ct.trial_id = ?",
+    [idTrial]
   );
-  return sites;
-}
-
-export async function getById(id) {
-  let site = await conn.query("select * from site WHERE site_id = ?", [id]);
-  if (site.length === 0) {
-    return "id_site doesn't found !";
+  if (askedTrial.length < 1) {
+    return "Clinical Trial with id = " + idTrial + " doesn't exist";
   }
-  const address = await conn.query(
-    "SELECT street, zip_code, city, country FROM address_site where site_id = ?",
-    [site[0].site_id]
+  const creatorUser = await conn.query(
+    "SELECT * FROM project_manager where pm_id = ?",
+    [askedTrial[0].creator]
   );
-  site[0].address = address[0];
-
-  return site[0];
+  askedTrial[0].creator = creatorUser[0];
+  return askedTrial[0];
 }
 
-export async function getIdByName(siteName) {
-  const site = await conn.query("SELECT site_id FROM site WHERE name = ?", [
-    siteName,
-  ]);
-  if (site.length === 0) {
-    return "id_site doesn't found !";
-  }
-  return site[0].site_id;
-}
-
-export async function create(site) {
-  if ((await getIdByName(site.name)) !== "id_site doesn't found !") {
-    return "Site already exist";
-  }
-  const siteToAdd = await conn.execute("INSERT INTO site (name) VALUE (?)", [
-    site.name,
-  ]);
-  const site_id = await getIdByName(site.name);
+export async function create(trial) {
+  // tester qu'il n'existe pas...
   await conn.execute(
-    "INSERT INTO address_site (site_id, street, zip_code, city, country) VALUES (?,?,?,?,?)",
+    "INSERT INTO clinical_trial (name, molecule, start_date, end_date, creator, status, description, creation_date) VALUES (?,?,?,?,?,?,?,?)",
     [
-      site_id,
-      site.siteStreet,
-      site.siteZipCode,
-      site.siteCity,
-      site.siteCountry,
+      trial.name,
+      trial.molecule,
+      trial.startDate,
+      trial.endDate,
+      trial.creator,
+      trial.status,
+      trial.description,
+      trial.creationDate,
     ]
   );
-  return { site_id };
+  return { status: "created" };
 }
 
-export async function update(idSite, siteToUpdate) {
-  const oldSite = await getById(idSite);
-  if (oldSite.name !== siteToUpdate.name) {
-    await conn.execute("UPDATE site SET name = ? WHERE site_id = ?", [
-      siteToUpdate.name,
-      idSite,
-    ]);
+export async function update(idTrial, trialToUpdate) {
+  if (
+    (await getById(idTrial)).toString().startsWith("Clinical Trial with id")
+  ) {
+    return "Clinical trial " + idTrial + " doesn't exist";
   }
-  await conn.execute(
-    "UPDATE address_site SET street = ?, zip_code = ?, city = ?, country = ? WHERE site_id = ?",
+  return await conn.execute(
+    "UPDATE clinical_trial SET status = ?, description = ?, end_date = ? WHERE trial_id = ?",
     [
-      siteToUpdate.siteStreet,
-      siteToUpdate.siteZipCode,
-      siteToUpdate.siteCity,
-      siteToUpdate.siteCountry,
-      idSite,
+      trialToUpdate.status,
+      trialToUpdate.description,
+      trialToUpdate.end_date,
+      idTrial,
     ]
   );
-  return siteToUpdate;
 }
 
-export async function deleteFct(idSite) {
-  if ((await getById(idSite)) === "id_site doesn't found !") {
-    return "site " + idSite + " doesn't exist";
+export async function deleteFct(idTrial) {
+  if (
+    (await getById(idTrial)).toString().startsWith("Clinical Trial with id")
+  ) {
+    return "Clinical trial " + idTrial + " doesn't exist";
   }
-  await conn.execute("DELETE FROM address_site WHERE site_id = ?", [idSite]);
-  await conn.execute("DELETE FROM site WHERE site_id = ?", [idSite]);
-  return { deleted_site: idSite };
+  await conn.execute("DELETE FROM clinical_trial WHERE trial_id = ?", [
+    idTrial,
+  ]);
+  return { deleted_trial: idTrial };
+}
+
+export async function getSite(idTrial) {
+  const listSite = await conn.query(
+    "SELECT * FROM clinical_trial_site WHERE clinical_trial_id = ?",
+    [idTrial]
+  );
+  console.log("listSite", listSite);
+  let listRetour = [];
+  for (let i = 0; i < listSite.length; i++) {
+    listRetour.push(await getByIdSite(listSite[i].site_id));
+  }
+  return listRetour;
+}
+
+export async function addSite(idTrial, idSite) {
+  await conn.execute(
+    "INSERT INTO clinical_trial_site (clinical_trial_id, site_id) VALUES (?,?)",
+    [idTrial, idSite]
+  );
+  return { trial_id: idTrial, site_id: idSite };
 }

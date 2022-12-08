@@ -1,19 +1,19 @@
-import { app, router } from "../utils/urlUtils";
+import { app } from "../utils/urlUtils";
 import {
-  getAllPatient,
-  addPatient,
-  getPatientByUsername,
-  updatePatient,
-  deletePatient,
-} from "../controllers/PatientController";
-import { login, test } from "../controllers/UserController";
-app.use("/user", router);
+  getAllSite,
+  getSiteById,
+  createSite,
+  getAllSiteByJoin,
+  updateSite,
+  deleteSite,
+  getFlatSiteById,
+} from "../controllers/SiteController";
 
-router.get("/login", test);
-router.post("/login", login);
-// ===============================------- Patient --------=========================================
-router.get("/patients", getAllPatient);
-router.get("/patient/:username", getPatientByUsername);
-router.post("/patient", addPatient);
-router.put("/patient/:username", updatePatient);
-router.delete("/patient/:username", deletePatient);
+// ===============================------- Site --------=========================================
+app.get("/sites", getAllSite);
+app.get("/flatSites", getAllSiteByJoin);
+app.get("/flatSite/:id", getFlatSiteById);
+app.get("/site/:id", getSiteById);
+app.post("/site", createSite);
+app.put("/site", updateSite);
+app.delete("/site/:id", deleteSite);

@@ -1,18 +1,19 @@
-import { app, router } from "../utils/urlUtils";
+import { app } from "../utils/urlUtils";
 import {
-  getAllSite,
-  getSiteById,
-  createSite,
-  getAllSiteByJoin,
-  updateSite,
-  deleteSite,
-} from "../controllers/SiteController";
-app.use("/site", router);
+  addSiteToClinicalTrial,
+  createTrial,
+  deleteTrial,
+  getAllTrial,
+  getSiteToClinicalTrial,
+  getTrialById,
+  updateTrial,
+} from "../controllers/ClinicalTrialController";
 
 // ===============================------- Site --------=========================================
-router.get("/sites", getAllSite);
-router.get("/flatSites", getAllSiteByJoin);
-router.get("/:id", getSiteById);
-router.post("/", createSite);
-router.put("/:id", updateSite);
-router.delete("/:id", deleteSite);
+app.get("/trials", getAllTrial);
+app.get("/trial/:id", getTrialById);
+app.post("/trial", createTrial);
+app.get("/trial-site/:trial_id", getSiteToClinicalTrial);
+app.post("/trial-site/", addSiteToClinicalTrial);
+app.put("/trial/:id", updateTrial);
+app.delete("/trial/:id", deleteTrial);

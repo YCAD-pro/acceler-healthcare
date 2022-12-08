@@ -1,40 +1,42 @@
 import {
+  addSite,
   create,
   deleteFct,
   getAll,
-  getAllByJoin,
   getById,
+  getSite,
   update,
-} from "../model/SiteModel";
-import { Site } from "../entities/Site";
+} from "../model/TrialModel";
+import { ClinicalTrial } from "../entities/ClinicalTrial";
 
-export async function getAllSite(req, res) {
-  const result = await getAll();
-  res.json(result);
+export async function getAllTrial(req, res) {
+  res.json(await getAll());
 }
 
-export async function getAllSiteByJoin(req, res) {
-  res.json(await getAllByJoin());
+export async function getTrialById(req, res) {
+  res.json(await getById(req.params.id));
 }
 
-export async function updateSite(req, res) {
-  const idSite = req.params.id;
-  const siteToUpdate = new Site(req.body);
-  const result = await update(idSite, siteToUpdate);
-  res.json(result);
+export async function createTrial(req, res) {
+  const trialToCreate = new ClinicalTrial(req.body);
+  trialToCreate.creationDate = new Date();
+  res.json(await create(trialToCreate));
 }
 
-export async function getSiteById(req, res) {
-  const idSite = req.params.id;
-  res.json(await getById(idSite));
+export async function updateTrial(req, res) {
+  res.json(await update(req.params.id, req.body));
 }
 
-export async function createSite(req, res) {
-  const siteToCreate = new Site(req.body);
-  res.json(await create(siteToCreate));
+export async function deleteTrial(req, res) {
+  res.json(await deleteFct(req.params.id));
 }
 
-export async function deleteSite(req, res) {
-  const idSiteToDelete = req.params.id;
-  res.json(await deleteFct(idSiteToDelete));
+export async function getSiteToClinicalTrial(req, res) {
+  const trialId = req.params.trial_id;
+  res.json(await getSite(trialId));
+}
+
+export async function addSiteToClinicalTrial(req, res) {
+  const { clinical_trial_id, site_id } = req.body;
+  res.json(await addSite(clinical_trial_id, site_id));
 }
