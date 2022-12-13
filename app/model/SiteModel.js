@@ -1,4 +1,4 @@
-import {} from "../entities/Site";
+import { Site } from "../entities/Site";
 import { conn } from "../utils/bddUtils";
 
 export async function getAll() {
@@ -88,10 +88,10 @@ export async function update(siteToUpdate) {
   await conn.execute(
     "UPDATE address_site SET street = ?, zip_code = ?, city = ?, country = ? WHERE site_id = ?",
     [
-      siteToUpdate.siteStreet,
-      siteToUpdate.siteZipCode,
-      siteToUpdate.siteCity,
-      siteToUpdate.siteCountry,
+      siteToUpdate.street,
+      siteToUpdate.zip_code,
+      siteToUpdate.city,
+      siteToUpdate.country,
       siteToUpdate.site_id,
     ]
   );

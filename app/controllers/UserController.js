@@ -1,12 +1,15 @@
 import { v4 } from "uuid";
 import { checkCredentialUser } from "../utils/userUtils";
+import { getUserRole } from "../utils/bddUtils";
 import {
   addDoctorSite,
+  createPatientUser,
   createUser,
   getAllDoctors,
   getAllPatients,
   getAllProjectManagers,
   getAllUsers,
+  getDoctorHaveNoSite,
   getDoctorsBySite,
   getUserByMail,
   getUserByUsername,
@@ -14,18 +17,37 @@ import {
 } from "../model/UserModel";
 import { User } from "../entities/User";
 import { Doctor } from "../entities/Doctor";
+import { jwt } from "../utils/urlUtils";
+import { PatientUser } from "../entities/PatientUser";
+
+let userAuthenticate = [];
 
 export async function login(req, res) {
   let { user, password } = req.body;
-  console.log("received : " + user, password); // ======DESTROY ON PROD !!!
+  //console.log("received : " + user, password); // ======DESTROY ON PROD !!!
   const retour = await checkCredentialUser(user, password);
   if (retour) {
-    let tokenUser = v4();
-    console.log(tokenUser);
+    const role = await getUserRole(user);
+    let generatedV4 = v4();
+    let tokenUser = jwt.sign({ user, role: role.status }, generatedV4);
+    userAuthenticate.push(tokenUser);
     res.json({ tokenUser });
   } else {
     res.json({ error: "Your credentials are incorrect !" });
   }
+}
+
+function test(token, passToken) {
+  console.log("enter in test function...");
+  console.log(passToken);
+  try {
+    let decoded = jwt.verify(token, passToken);
+    console.log("jwt.verify ", decoded.user); // user
+  } catch (err) {
+    console.error("INFO : Bad secret");
+  }
+  console.log("-------");
+  console.log(jwt.decode(token));
 }
 
 export async function getAllUser(req, res) {
@@ -40,6 +62,12 @@ export async function getByUsername(req, res) {
   }
 }
 export async function createNewUser(req, res) {
+  // if patient ....
+  if (req.body.status === "patient") {
+    res.json(await createPatientUser(new PatientUser(req.body)));
+    return;
+  }
+  // or
   res.json(await createUser(new User(req.body)));
 }
 
@@ -49,6 +77,9 @@ export async function getAllPatient(req, res) {
 
 export async function getAllDoctor(req, res) {
   res.json(await getAllDoctors());
+}
+export async function getDoctorsHaveNoSite(req, res) {
+  res.json(await getDoctorHaveNoSite());
 }
 export async function getAllDoctorInSite(req, res) {
   const idSite = req.params.site_id;

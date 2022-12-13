@@ -1,11 +1,37 @@
 import { conn } from "../utils/bddUtils";
 import { getByIdSite } from "./SiteModel";
+import { query } from "express";
 
 export async function getAll() {
-  return await conn.query("SELECT * FROM clinical_trial");
+  let trials = await conn.query("SELECT * FROM clinical_trial");
+  return await addStats(trials);
 }
 
-export async function getById(idTrial) {
+export async function getAllAliveTrials() {
+  let trials = await conn.query(
+    "SELECT * FROM clinical_trial WHERE end_date > CURRENT_DATE"
+  );
+  return await addStats(trials);
+}
+
+async function addStats(trials) {
+  for (let i = 0; i < trials.length; i++) {
+    let trial = trials[i];
+    const nbDoc = await conn.query(
+      "SELECT count(*) as nb FROM clinical_trial_doctor WHERE clinical_trial_id = ?",
+      [trial.trial_id]
+    );
+    trial.doc_length = nbDoc[0].nb;
+    const nbPatient = await conn.query(
+      "SELECT count(*) as nb FROM patient WHERE clinical_trial = ?",
+      [trial.trial_id]
+    );
+    trial.patient_length = nbPatient[0].nb;
+  }
+  return trials;
+}
+
+export async function getClinicalTrialById(idTrial) {
   let askedTrial = await conn.query(
     "SELECT * FROM clinical_trial ct WHERE ct.trial_id = ?",
     [idTrial]
@@ -41,7 +67,9 @@ export async function create(trial) {
 
 export async function update(idTrial, trialToUpdate) {
   if (
-    (await getById(idTrial)).toString().startsWith("Clinical Trial with id")
+    (await getClinicalTrialById(idTrial))
+      .toString()
+      .startsWith("Clinical Trial with id")
   ) {
     return "Clinical trial " + idTrial + " doesn't exist";
   }
@@ -58,7 +86,9 @@ export async function update(idTrial, trialToUpdate) {
 
 export async function deleteFct(idTrial) {
   if (
-    (await getById(idTrial)).toString().startsWith("Clinical Trial with id")
+    (await getClinicalTrialById(idTrial))
+      .toString()
+      .startsWith("Clinical Trial with id")
   ) {
     return "Clinical trial " + idTrial + " doesn't exist";
   }
@@ -87,4 +117,11 @@ export async function addSite(idTrial, idSite) {
     [idTrial, idSite]
   );
   return { trial_id: idTrial, site_id: idSite };
+}
+
+export async function getListSitesByIdTrial(idTrial) {
+  return await conn.query(
+    "SELECT site_id FROM clinical_trial_site WHERE clinical_trial_id=?",
+    [idTrial]
+  );
 }

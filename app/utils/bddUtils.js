@@ -22,12 +22,14 @@ const getPasswordUser = async (username) => {
   }
 };
 
-const test = async () => {
-  let rep = await conn.query("select * from user", (err, data) => {
-    console.log("here OK");
-    return data;
-  });
-  console.log(rep);
+const getUserRole = async (username) => {
+  console.log("in getuser role");
+  let userRole = await conn.query(
+    "select status from user WHERE username = ?",
+    [username]
+  );
+  return userRole[0];
 };
+
 conn.connect;
-module.exports = { conn, getPasswordUser };
+module.exports = { conn, getPasswordUser, getUserRole };

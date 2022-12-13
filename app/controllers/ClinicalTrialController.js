@@ -3,7 +3,9 @@ import {
   create,
   deleteFct,
   getAll,
-  getById,
+  getAllAliveTrials,
+  getClinicalTrialById,
+  getListSitesByIdTrial,
   getSite,
   update,
 } from "../model/TrialModel";
@@ -14,7 +16,7 @@ export async function getAllTrial(req, res) {
 }
 
 export async function getTrialById(req, res) {
-  res.json(await getById(req.params.id));
+  res.json(await getClinicalTrialById(req.params.id));
 }
 
 export async function createTrial(req, res) {
@@ -39,4 +41,21 @@ export async function getSiteToClinicalTrial(req, res) {
 export async function addSiteToClinicalTrial(req, res) {
   const { clinical_trial_id, site_id } = req.body;
   res.json(await addSite(clinical_trial_id, site_id));
+}
+
+export async function addTrialToSites(req, res) {
+  let { sitesId, trialId } = req.body;
+  let sitesAlreadyInTrial = await getListSitesByIdTrial(trialId);
+  sitesAlreadyInTrial = sitesAlreadyInTrial.map((id) => String(id.site_id));
+  for (let i = 0; i < sitesId.length; i++) {
+    if (!sitesAlreadyInTrial.includes(sitesId[i])) {
+      console.log(`add site ${sitesId[i]} to trial ${trialId}`);
+      await addSite(trialId, sitesId[i]);
+    }
+  }
+  res.json({ sites: sitesId, trial: trialId });
+}
+
+export async function getAllTrialsAlive(req, res) {
+  res.json(await getAllAliveTrials());
 }

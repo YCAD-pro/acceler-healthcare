@@ -26,8 +26,35 @@ export async function getUserByMail(userMail) {
   return userToFind[0];
 }
 
+export async function createPatientUser(patient) {
+  // modif password to generate...
+  patient.password = "password";
+  // generate a name mask
+  const mask = patient.firstname + patient.lastname;
+  await createUser(patient);
+  await conn.execute(
+    "INSERT INTO patient (username, patient_mask) VALUES (?,?)",
+    [patient.username, mask]
+  );
+  const idPatient = await getPatientByUsername(patient.username);
+  console.log(idPatient);
+  await conn.execute(
+    "INSERT INTO info_patient (patient_id, description, background, gender, birthday, status_marital, work) VALUES (?,?,?,?,?,?,?)",
+    [
+      idPatient[0].patient_id,
+      patient.description,
+      patient.background,
+      patient.gender,
+      patient.birthday,
+      patient.status_marital,
+      patient.work,
+    ]
+  );
+  return "OK";
+}
+
 export async function createUser(user) {
-  console.log(user);
+  console.log("createUser asked with:", user);
   await conn.execute(
     "INSERT INTO user (username, firstname, lastname, mail, status, password, creation_date) VALUES (?,?,?,?,?,?,?)",
     [
@@ -40,9 +67,7 @@ export async function createUser(user) {
       user.creationDate,
     ]
   );
-  if (user.status === "patient") {
-    await createPatient(user.username);
-  } else if (user.status === "doctor") {
+  if (user.status === "doctor") {
     await createDoctor(user.username);
   } else if (user.status === "project-manager") {
     await createProjectManager(user.username);
@@ -77,17 +102,32 @@ export async function getPatientsByClinicalTrial(idClinicalTrial) {
   );
 }
 
-export async function createPatient(username) {
-  await conn.execute("INSERT INTO patient (username) VALUE (?)", [username]);
+export async function getPatientById(idPatient) {
+  const patient = await conn.query(
+    "SELECT * FROM patient p JOIN user u on u.username = p.username WHERE patient_id=?",
+    [idPatient]
+  );
+  return patient[0];
 }
 
+export async function getPatientByUsername(patientUsername) {
+  return await conn.query("SELECT * FROM patient WHERE username = ?", [
+    patientUsername,
+  ]);
+}
 // ======================= DOCTOR TYPE ========================>
 export async function getAllDoctors() {
-  return await conn.query("SELECT * from user WHERE status = ?", ["doctor"]);
+  return await conn.query(
+    "SELECT * from user u JOIN doctor d on u.username = d.username WHERE status = ?",
+    ["doctor"]
+  );
 }
 
 export async function createDoctor(username) {
   await conn.execute("INSERT INTO doctor (username) VALUE (?)", [username]);
+}
+export async function getDoctorHaveNoSite() {
+  return await conn.query("SELECT * FROM doctor where site IS NULL");
 }
 export async function getDoctorsBySite(idSite) {
   return await conn.query(
