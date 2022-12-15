@@ -4,8 +4,9 @@
   "description": "back-end",
   "main": "app/server.js",
   "scripts": {
-    "start": "nodemon --exec babel-node app/server.js",
+    "start": "babel-node app/server.js",
     "test": "test"
+
   },
   "repository": {
     "type": "git",

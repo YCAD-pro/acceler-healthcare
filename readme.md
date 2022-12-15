@@ -19,3 +19,6 @@ Suivit d'essais clinique
 ###### Databases :
 
 ###### Model of data :
+
+###### Start dev-mode by 
+nodemon --exec babel-node app/server.js
