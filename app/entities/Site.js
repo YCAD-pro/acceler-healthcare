@@ -7,6 +7,7 @@ export class Site {
   zip_code;
   city;
   country;
+  address;
 
   constructor(site) {
     this.site_id = site.site_id;
@@ -15,6 +16,7 @@ export class Site {
     this.zip_code = site.zip_code;
     this.city = site.city;
     this.country = site.country;
+    this.address = site.address;
   }
 
   static async getAll() {

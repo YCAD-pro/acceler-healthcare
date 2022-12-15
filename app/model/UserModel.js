@@ -16,6 +16,28 @@ export async function getUserByUsername(username) {
   return userToFind[0];
 }
 
+export async function getDoctorByUsername(username) {
+  const userToFind = await conn.query(
+    "SELECT * FROM doctor WHERE username = ?",
+    [username]
+  );
+  if (userToFind.length < 1) {
+    return "No user with username " + username;
+  }
+  return userToFind[0];
+}
+
+export async function getProjectManagerByUsername(username) {
+  const userToFind = await conn.query(
+    "SELECT * FROM project_manager WHERE username = ?",
+    [username]
+  );
+  if (userToFind.length < 1) {
+    return "No user with username " + username;
+  }
+  return userToFind[0];
+}
+
 export async function getUserByMail(userMail) {
   const userToFind = await conn.query("SELECT * FROM user WHERE mail = ?", [
     userMail,
@@ -37,7 +59,6 @@ export async function createPatientUser(patient) {
     [patient.username, mask]
   );
   const idPatient = await getPatientByUsername(patient.username);
-  console.log(idPatient);
   await conn.execute(
     "INSERT INTO info_patient (patient_id, description, background, gender, birthday, status_marital, work) VALUES (?,?,?,?,?,?,?)",
     [
@@ -50,7 +71,7 @@ export async function createPatientUser(patient) {
       patient.work,
     ]
   );
-  return "OK";
+  return idPatient[0];
 }
 
 export async function createUser(user) {
@@ -93,6 +114,12 @@ export async function updateUser(usernameUser, user) {
 // ======================= PATIENT TYPE ========================>
 export async function getAllPatients() {
   return await conn.query("SELECT * from user WHERE status = ?", ["patient"]);
+}
+export async function getAllPatientsWithoutTrial() {
+  return await conn.query(
+    "SELECT * from user u JOIN patient p on u.username = p.username WHERE u.status = ? AND p.clinical_trial IS NULL",
+    ["patient"]
+  );
 }
 
 export async function getPatientsByClinicalTrial(idClinicalTrial) {

@@ -2,9 +2,11 @@ import { app } from "../utils/urlUtils";
 import {
   addScheduledMeeting,
   getMeetingByIdDoc,
+  insertMeetingReport,
   updateScheduledMeeting,
 } from "../controllers/MeetingController";
 
-app.get("/meeting/doc/:doctor_id", getMeetingByIdDoc);
-app.post("/meeting/doc", addScheduledMeeting);
-app.put("/meeting/doc", updateScheduledMeeting);
+app.get("/meeting/pending/:doctor_id", getMeetingByIdDoc);
+app.post("/meeting/", addScheduledMeeting);
+app.put("/meeting/", updateScheduledMeeting);
+app.post("/meeting/", insertMeetingReport);

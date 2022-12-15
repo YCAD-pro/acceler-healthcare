@@ -66,13 +66,7 @@ export async function create(site) {
   const site_id = await getIdByName(site.name);
   await conn.execute(
     "INSERT INTO address_site (site_id, street, zip_code, city, country) VALUES (?,?,?,?,?)",
-    [
-      site_id,
-      site.siteStreet,
-      site.siteZipCode,
-      site.siteCity,
-      site.siteCountry,
-    ]
+    [site_id, site.street, site.zip_code, site.city, site.country]
   );
   return { site_id };
 }

@@ -7,10 +7,14 @@ import {
   createUser,
   getAllDoctors,
   getAllPatients,
+  getAllPatientsWithoutTrial,
   getAllProjectManagers,
   getAllUsers,
+  getDoctorByUsername,
   getDoctorHaveNoSite,
   getDoctorsBySite,
+  getPatientByUsername,
+  getProjectManagerByUsername,
   getUserByMail,
   getUserByUsername,
   removeDoctorSite,
@@ -28,12 +32,26 @@ export async function login(req, res) {
   const retour = await checkCredentialUser(user, password);
   if (retour) {
     const role = await getUserRole(user);
+    let userId;
+    if (role.status === "project-manager") {
+      userId = await getProjectManagerByUsername(user);
+      userId = userId.pm_id;
+    } else if (role.status === "doctor") {
+      userId = await getDoctorByUsername(user);
+      userId = userId.doctor_id;
+    } else if (role.status === "patient") {
+      userId = await getPatientByUsername(user);
+      userId = userId[0].patient_id;
+    }
     let generatedV4 = v4();
-    let tokenUser = jwt.sign({ user, role: role.status }, generatedV4);
+    let tokenUser = jwt.sign(
+      { user, role: role.status, id: userId },
+      generatedV4
+    );
     userAuthenticate.push(tokenUser);
     res.json({ tokenUser });
   } else {
-    res.json({ error: "Your credentials are incorrect !" });
+    res.status(401).json({ error: "Your credentials are incorrect !" });
   }
 }
 
@@ -73,6 +91,10 @@ export async function createNewUser(req, res) {
 
 export async function getAllPatient(req, res) {
   res.json(await getAllPatients());
+}
+
+export async function getAllPatientsWithoutClinicalTrial(req, res) {
+  res.json(await getAllPatientsWithoutTrial());
 }
 
 export async function getAllDoctor(req, res) {

@@ -1,17 +1,27 @@
 import { conn } from "../utils/bddUtils";
 import { getByIdSite } from "./SiteModel";
 import { query } from "express";
+import { ClinicalTrial } from "../entities/ClinicalTrial";
 
 export async function getAll() {
   let trials = await conn.query("SELECT * FROM clinical_trial");
-  return await addStats(trials);
+  // trials.forEach((trial) => {
+  //   if (trial.status === null) {
+  //     let tr = new ClinicalTrial(trial);
+  //     console.log("tr=>", tr);
+  //     //trial.status = "OKAY";
+  //   }
+  // });
+  let trialsObj = trials.map((trial) => new ClinicalTrial(trial));
+  return await addStats(trialsObj);
 }
 
 export async function getAllAliveTrials() {
   let trials = await conn.query(
     "SELECT * FROM clinical_trial WHERE end_date > CURRENT_DATE"
   );
-  return await addStats(trials);
+  let trialsObj = trials.map((trial) => new ClinicalTrial(trial));
+  return await addStats(trialsObj);
 }
 
 async function addStats(trials) {
@@ -39,12 +49,13 @@ export async function getClinicalTrialById(idTrial) {
   if (askedTrial.length < 1) {
     return "Clinical Trial with id = " + idTrial + " doesn't exist";
   }
+  askedTrial = new ClinicalTrial(askedTrial[0]);
   const creatorUser = await conn.query(
     "SELECT * FROM project_manager where pm_id = ?",
-    [askedTrial[0].creator]
+    [askedTrial.creator]
   );
-  askedTrial[0].creator = creatorUser[0];
-  return askedTrial[0];
+  askedTrial.creator = creatorUser[0];
+  return askedTrial;
 }
 
 export async function create(trial) {
@@ -123,5 +134,41 @@ export async function getListSitesByIdTrial(idTrial) {
   return await conn.query(
     "SELECT site_id FROM clinical_trial_site WHERE clinical_trial_id=?",
     [idTrial]
+  );
+}
+
+export async function getDocInTrial(idTrial) {
+  return await conn.query(
+    "SELECT doctor_id FROM clinical_trial_doctor WHERE clinical_trial_id=?",
+    [idTrial]
+  );
+}
+
+export async function addDocinTrial(idTrial, docId) {
+  return await conn.execute(
+    "INSERT INTO clinical_trial_doctor (clinical_trial_id, doctor_id) VALUES (?,?)",
+    [idTrial, docId]
+  );
+}
+
+export async function addPatientInTrial(idTrial, patientId) {
+  console.log("asked add patient " + patientId + " in trial " + idTrial);
+  return await conn.execute(
+    "UPDATE patient SET clinical_trial=? WHERE patient_id=?",
+    [idTrial, patientId]
+  );
+}
+
+export async function getTrialForDoc(doctorId) {
+  return await conn.query(
+    "SELECT * FROM clinical_trial_doctor ctd JOIN clinical_trial ct on ctd.clinical_trial_id = ct.trial_id WHERE doctor_id=?",
+    [doctorId]
+  );
+}
+
+export async function findPatientsInClinicalTrial(trialId) {
+  return await conn.query(
+    "SELECT * FROM patient p JOIN user u ON p.username = u.username WHERE clinical_trial = ?",
+    [trialId]
   );
 }

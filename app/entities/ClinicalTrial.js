@@ -73,6 +73,16 @@ export class ClinicalTrial {
   status;
   description;
 
+  setStatus() {
+    if (this.startDate < new Date()) {
+      this.status = "started";
+    } else if (this.startDate > new Date()) {
+      this.status = "pending";
+    } else if (this.status === "started" && this.endDate > new Date()) {
+      this.status = "finished";
+    }
+  }
+
   constructor(trial) {
     this.trial_id = trial.trial_id;
     this.name = trial.name;
@@ -81,7 +91,12 @@ export class ClinicalTrial {
     this.molecule = trial.molecule;
     this.creationDate = trial.creation_date;
     this.creator = trial.creator;
-    this.status = trial.status;
     this.description = trial.description;
+    this.setStatus();
+    // if (trial.status !== null) {
+    //   this.status = trial.status;
+    // } else {
+    //   this.setStatus();
+    // }
   }
 }
