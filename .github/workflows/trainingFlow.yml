@@ -20,4 +20,4 @@ jobs:
           echo "`DATE=date +%Y-%m`" >> $GITHUB_OUTPUT
           echo $Date
       - name: Show GITHUB ENV
-        run: echo $GITHUB_OUTPUT
+        run: echo ${{ GITHUB_OUTPUT }}
