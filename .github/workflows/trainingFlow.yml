@@ -11,6 +11,13 @@ jobs:
         with:
           name: calculation
           path: time
+      - name: Upload time end
+        run: date +%s > time_end.txt
+      - name: setDate
+        uses: actions/upload-artifact@v3
+        with:
+          name: homework
+          path: time_end.txt
       - name: load the var
         run: date +%s > start.txt
       - name: Show
