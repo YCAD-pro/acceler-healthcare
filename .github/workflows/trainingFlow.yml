@@ -15,3 +15,7 @@ jobs:
         run: date +%s > start.txt
       - name: Show
         run: cat start.txt
+      - name: Test Date
+        run: |
+          Date=date +%Y-%m
+          echo $Date
