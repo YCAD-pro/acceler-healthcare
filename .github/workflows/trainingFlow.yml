@@ -17,7 +17,9 @@ jobs:
         run: cat start.txt
       - name: Test Date
         run: |
+          echo "`DATE=date +%Y-%m`" >> $GITHUB_OUTPUT
           echo $Date
+      - name: Show GITHUB ENV
+        run: echo $JSON
         env:
-          Date:
-            run: date +%Y-%m
+          JSON: ${{ toJSON($GITHUB_OUTPUT) }}
