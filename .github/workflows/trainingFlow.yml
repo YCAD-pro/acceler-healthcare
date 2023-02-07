@@ -19,5 +19,11 @@ jobs:
         run: |
           echo "`DATE=date +%Y-%m`" >> $GITHUB_OUTPUT
           echo $Date
-      - name: Show GITHUB ENV
-        run: echo ${GITHUB_OUTPUT}
+      - name: Explore Context
+        run: echo $JSON
+        env:
+          JSON: ${{ toJSON(github) }}
+      - name: Explore Env
+        run: echo $JSON
+        env:
+          JSON: ${{ toJSON(env) }}
