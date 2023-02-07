@@ -1,0 +1,22 @@
+name: Training to Workflows
+on: [push, workflow_dispatch]
+
+jobs:
+  First-job:
+    name: initialize start-time
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          name: calculation
+          path: start
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: load the var
+        run: date +%s > start
+      - name: Show
+        run: cat start
