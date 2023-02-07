@@ -17,5 +17,6 @@ jobs:
         run: cat start.txt
       - name: Test Date
         run: |
-          Date='date +%Y-%m'
           echo $Date
+        env:
+          Date: ${{ date +%Y-%m }}
